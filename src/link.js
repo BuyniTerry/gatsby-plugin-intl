@@ -2,12 +2,13 @@ import React from "react"
 import PropTypes from "prop-types"
 import { Link as GatsbyLink, navigate as gatsbyNavigate } from "gatsby"
 import { IntlContextConsumer } from "./intl-context"
+import { getLocalizedPath } from "./utils/pathTransform"
 
 const Link = ({ to, language, children, onClick, ...rest }) => (
   <IntlContextConsumer>
     {intl => {
       const languageLink = language || intl.language
-      const link = intl.routed || language ? `/${languageLink}${to}` : `${to}`
+      const link = getLocalizedPath(to, languageLink, intl.slugs, intl.routed)
 
       const handleClick = e => {
         if (language) {
@@ -44,8 +45,8 @@ export const navigate = (to, options) => {
     return
   }
 
-  const { language, routed } = window.___gatsbyIntl
-  const link = routed ? `/${language}${to}` : `${to}`
+  const { language, slugs, routed } = window.___gatsbyIntl
+  const link = getLocalizedPath(to, language, slugs, routed)
   gatsbyNavigate(link, options)
 }
 
@@ -53,17 +54,9 @@ export const changeLocale = (language, to) => {
   if (typeof window === "undefined") {
     return
   }
-  const { routed } = window.___gatsbyIntl
+  const { originalPath, slugs, routed } = window.___gatsbyIntl
 
-  const removeLocalePart = pathname => {
-    if (!routed) {
-      return pathname
-    }
-    const i = pathname.indexOf(`/`, 1)
-    return pathname.substring(i)
-  }
-
-  const pathname = to || removeLocalePart(window.location.pathname)
+  const pathname = to || getLocalizedPath(originalPath, language, slugs, routed)
   // TODO: check slash
   const link = `/${language}${pathname}${window.location.search}`
   localStorage.setItem("gatsby-intl-language", language)

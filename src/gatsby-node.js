@@ -1,4 +1,5 @@
 const webpack = require("webpack")
+const { getLocalizedPath } = require("./utils/pathTransform")
 
 function flattenMessages(nestedMessages, prefix = "") {
   return Object.keys(nestedMessages).reduce((messages, key) => {
@@ -42,8 +43,10 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
   const { createPage, deletePage } = actions
   const {
     path = ".",
+    slugsFilename = "slugs.json",
     languages = ["en"],
     defaultLanguage = "en",
+    defaultLocale = true,
     redirect = false,
   } = pluginOptions
 
@@ -58,9 +61,19 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
     }
   }
 
+  const getSlugs = (path, file) => {
+    try {
+      // TODO load yaml here
+      return require(`${path}/${file}`)
+    } catch (err) {
+      return {}
+    }
+  }
+
   const generatePage = (routed, language) => {
     const messages = getMessages(path, language)
-    const newPath = routed ? `/${language}${page.path}` : page.path
+    const slugs = getSlugs(path, slugsFilename)
+    const newPath = getLocalizedPath(page.path, language, slugs, routed)
     return {
       ...page,
       path: newPath,
@@ -70,6 +83,7 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
           language,
           languages,
           messages,
+          slugs,
           routed,
           originalPath: page.path,
           redirect,
@@ -82,11 +96,16 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
   deletePage(page)
   createPage(newPage)
 
-  languages.forEach(language => {
-    const localePage = generatePage(true, language)
-    if (localePage.path.includes(`/404/`)) {
-      localePage.matchPath = `/${language}/*`
-    }
-    createPage(localePage)
-  })
+  languages
+    .filter(locale => {
+      if (defaultLocale === true) return true
+      return locale !== defaultLanguage
+    })
+    .forEach(language => {
+      const localePage = generatePage(true, language)
+      if (localePage.path.includes(`/404/`)) {
+        localePage.matchPath = `/${language}/*`
+      }
+      createPage(localePage)
+    })
 }

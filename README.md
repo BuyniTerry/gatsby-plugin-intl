@@ -44,10 +44,16 @@ plugins: [
     options: {
       // language JSON resource path
       path: `${__dirname}/src/intl`,
+      // if you need to translate your slugs
+      // e.g. /en/boats/motorboat to /fr/bateaux/bateau-a-moteur
+      slugsFilename: `slugs.json`,
       // supported language
       languages: [`en`, `ko`, `de`],
       // language file path
       defaultLanguage: `ko`,
+      // if you don't need defaultLanguage pages variant
+      // eg: don't translate /boats/motorboat to /en/boats/motorboat
+      defaultLocale: true,
       // option to redirect to `/ko` when connecting `/`
       redirect: true,
     },
