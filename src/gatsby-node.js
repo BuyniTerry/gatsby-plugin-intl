@@ -1,5 +1,9 @@
 const webpack = require("webpack")
-const { getLocalizedPath } = require("./utils/pathTransform")
+const path = require("path")
+const fs = require("fs")
+const yaml = require("js-yaml")
+
+const getLocalizedPath = require("./path-transform")
 
 function flattenMessages(nestedMessages, prefix = "") {
   return Object.keys(nestedMessages).reduce((messages, key) => {
@@ -14,6 +18,47 @@ function flattenMessages(nestedMessages, prefix = "") {
 
     return messages
   }, {})
+}
+// requires json
+function getJson(pathname) {
+  try {
+    return require(pathname)
+  } catch (err) {
+    return {}
+  }
+}
+// get yaml file
+function getYaml(pathname) {
+  try {
+    return yaml.safeLoad(fs.readFileSync(pathname, "utf8"))
+  } catch (err) {
+    return {}
+  }
+}
+// tries to read files with json || yaml || yml extensions
+function getDataFromJsonOrYaml(pathname) {
+  const extension = path.extname(pathname)
+
+  const isEmpty = o => Object.keys(o).length === 0
+
+  switch (extension) {
+    case ".json":
+      return getJson(pathname)
+    case ".yml":
+    case ".yaml":
+      return getYaml(pathname)
+    default:
+      const fromJson = getJson(`${pathname}.json`)
+      if (!isEmpty(fromJson)) return fromJson
+
+      const fromYml = getYaml(`${pathname}.yml`)
+      if (!isEmpty(fromYml)) return fromYml
+
+      const fromYaml = getYaml(`${pathname}.yaml`)
+      if (!isEmpty(fromYaml)) return fromYaml
+
+      return {}
+  }
 }
 
 exports.onCreateWebpackConfig = ({ actions, plugins }, pluginOptions) => {
@@ -52,8 +97,7 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
 
   const getMessages = (path, language) => {
     try {
-      // TODO load yaml here
-      const messages = require(`${path}/${language}.json`)
+      const messages = getDataFromJsonOrYaml(`${path}/${language}`)
       //
       return flattenMessages(messages)
     } catch (err) {
@@ -63,8 +107,7 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
 
   const getSlugs = (path, file) => {
     try {
-      // TODO load yaml here
-      return require(`${path}/${file}`)
+      return getDataFromJsonOrYaml(`${path}/${file}`)
     } catch (err) {
       return {}
     }

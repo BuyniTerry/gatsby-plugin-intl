@@ -2,7 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import { Link as GatsbyLink, navigate as gatsbyNavigate } from "gatsby"
 import { IntlContextConsumer } from "./intl-context"
-import { getLocalizedPath } from "./utils/pathTransform"
+import getLocalizedPath from "./path-transform"
 
 const Link = ({ to, language, children, onClick, ...rest }) => (
   <IntlContextConsumer>
@@ -56,9 +56,11 @@ export const changeLocale = (language, to) => {
   }
   const { originalPath, slugs, routed } = window.___gatsbyIntl
 
-  const pathname = to || getLocalizedPath(originalPath, language, slugs, routed)
+  const pathname =
+    `/${language}${to}` ||
+    getLocalizedPath(originalPath, language, slugs, routed)
   // TODO: check slash
-  const link = `/${language}${pathname}${window.location.search}`
+  const link = `${pathname}${window.location.search}`
   localStorage.setItem("gatsby-intl-language", language)
   gatsbyNavigate(link)
 }
