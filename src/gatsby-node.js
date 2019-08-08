@@ -3,7 +3,7 @@ const path = require("path")
 const fs = require("fs")
 const yaml = require("js-yaml")
 
-const getLocalizedPath = require("./path-transform")
+const { getLocalizedPath } = require("./path-transform")
 
 function flattenMessages(nestedMessages, prefix = "") {
   return Object.keys(nestedMessages).reduce((messages, key) => {

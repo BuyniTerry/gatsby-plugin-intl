@@ -1,4 +1,4 @@
-export default (pathname, language, slugs, routed) => {
+export const getLocalizedPath = (pathname, language, slugs, routed) => {
   const defaultPath = routed ? `/${language}${pathname}` : pathname
 
   const translatedSlugs = slugs[language]

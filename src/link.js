@@ -2,7 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import { Link as GatsbyLink, navigate as gatsbyNavigate } from "gatsby"
 import { IntlContextConsumer } from "./intl-context"
-import getLocalizedPath from "./path-transform"
+import { getLocalizedPath } from "./path-transform"
 
 const Link = ({ to, language, children, onClick, ...rest }) => (
   <IntlContextConsumer>
