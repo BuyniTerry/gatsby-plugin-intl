@@ -1,13 +1,15 @@
 export const getLocalizedPath = (pathname, language, slugs, routed) => {
-  const defaultPath = routed ? `/${language}${pathname}` : pathname
+  const defaultPath = routed && language ? `/${language}${pathname}` : pathname
 
   const translatedSlugs = slugs[language]
-  if (!translatedSlugs) return defaultPath
+  if (typeof translatedSlugs === "undefined" || translatedSlugs === null) {
+    return defaultPath
+  }
 
-  const newPath = pathname
+  let newPath = pathname
     .split("/")
     .map(word => (translatedSlugs[word] ? translatedSlugs[word] : word))
     .join("/")
 
-  return routed ? `/${language}${newPath}` : newPath
+  return routed && language ? `/${language}${newPath}` : newPath
 }

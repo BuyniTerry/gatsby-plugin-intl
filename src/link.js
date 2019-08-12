@@ -40,13 +40,13 @@ Link.defaultProps = {
 
 export default Link
 
-export const navigate = (to, options) => {
+export const navigate = (to = "/", options) => {
   if (typeof window === "undefined") {
     return
   }
 
   const { language, slugs, routed } = window.___gatsbyIntl
-  const link = getLocalizedPath(to, language, slugs, routed)
+  const link = routed ? getLocalizedPath(to, language, slugs, routed) : `${to}`
   gatsbyNavigate(link, options)
 }
 
@@ -54,11 +54,16 @@ export const changeLocale = (language, to) => {
   if (typeof window === "undefined") {
     return
   }
-  const { originalPath, slugs, routed } = window.___gatsbyIntl
 
-  const pathname =
-    `/${language}${to}` ||
-    getLocalizedPath(originalPath, language, slugs, routed)
+  const { originalPath, slugs } = window.___gatsbyIntl
+
+  let pathname = to
+  if (typeof to === "undefined" && language !== "en") {
+    pathname = getLocalizedPath(originalPath, language, slugs, true)
+  } else if (typeof to === "undefined") {
+    pathname = `/${language}${originalPath}`
+  }
+
   // TODO: check slash
   const link = `${pathname}${window.location.search}`
   localStorage.setItem("gatsby-intl-language", language)
